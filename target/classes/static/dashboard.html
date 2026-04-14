@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Task Management SaaS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container dashboard-shell">
+    <nav class="top-nav glass">
+      <div class="nav-left">
+        <a class="button-link" href="index.html">Home</a>
+        <a class="button-link" href="login.html">Login</a>
+        <a class="button-link" href="register.html">Register</a>
+      </div>
+      <div class="nav-right">
+        <span id="roleBadge" class="role-badge">Member</span>
+        <button id="refreshBtn" type="button">Refresh</button>
+        <button id="logoutBtn" type="button" class="danger-btn">Logout</button>
+      </div>
+    </nav>
+
+    <section class="hero-card glass">
+      <h1>Team Command Center</h1>
+      <p id="heroSubtitle">Build projects, assign work, and monitor delivery in near real-time.</p>
+      <p id="statusMessage" class="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel-grid search-notify-grid">
+      <section class="card glass">
+        <h2>Global Search</h2>
+        <p class="section-note">Search tasks, projects, and users from one input.</p>
+        <div class="search-row">
+          <input id="globalSearchInput" type="search" placeholder="Search everything" />
+          <button id="globalSearchBtn" type="button">Search</button>
+        </div>
+        <div id="globalSearchResults" class="search-results"></div>
+      </section>
+
+      <section class="card glass">
+        <div class="notification-head">
+          <h2>Notification Center</h2>
+          <div class="notification-actions">
+            <button id="refreshNotificationsBtn" type="button">Refresh</button>
+            <button id="markAllNotificationsBtn" type="button">Mark All Read</button>
+          </div>
+        </div>
+        <p class="section-note">Assignments, mentions, due-soon, and overdue alerts.</p>
+        <div id="notificationList" class="notification-list"></div>
+      </section>
+    </section>
+
+    <section id="landingCards" class="role-cards" aria-label="Role-focused quick actions"></section>
+
+    <section class="quick-actions card glass">
+      <button id="jumpProjectBtn" type="button">Jump to Projects</button>
+      <button id="jumpTaskBtn" type="button">Jump to Create Task</button>
+      <button id="clearFiltersBtn" type="button">Clear Filters</button>
+    </section>
+
+    <section class="metrics-grid" aria-label="Task metrics">
+      <article class="metric-card">
+        <h3>Total Tasks</h3>
+        <p id="metricTotal" class="metric-value">0</p>
+      </article>
+      <article class="metric-card todo">
+        <h3>TODO</h3>
+        <p id="metricTodo" class="metric-value">0</p>
+      </article>
+      <article class="metric-card progress">
+        <h3>IN PROGRESS</h3>
+        <p id="metricProgress" class="metric-value">0</p>
+      </article>
+      <article class="metric-card done">
+        <h3>DONE</h3>
+        <p id="metricDone" class="metric-value">0</p>
+      </article>
+    </section>
+
+    <section class="panel-grid">
+      <section class="card glass" id="projectPanel">
+        <h2 id="projectPanelTitle">Project Management</h2>
+        <p id="projectSectionNote" class="section-note"></p>
+        <form id="projectForm">
+          <label for="projectName">Project Name</label>
+          <input id="projectName" type="text" required />
+          <button type="submit">Create Project</button>
+        </form>
+        <h3 id="projectListTitle">Active Projects</h3>
+        <div id="projectList" class="project-grid"></div>
+      </section>
+
+      <section class="card glass">
+        <h2 id="taskCreateTitle">Create Task</h2>
+        <form id="taskForm">
+          <label for="taskDesc">Task Description</label>
+          <input id="taskDesc" type="text" required />
+
+          <label for="taskDueDate">Due Date</label>
+          <input id="taskDueDate" type="date" />
+
+          <label for="taskStatus">Status</label>
+          <select id="taskStatus">
+            <option value="TODO">TODO</option>
+            <option value="IN_PROGRESS">IN_PROGRESS</option>
+            <option value="DONE">DONE</option>
+          </select>
+
+          <label for="taskProjectId">Project</label>
+          <select id="taskProjectId" required></select>
+
+          <label for="taskUserId">Assign To (optional)</label>
+          <select id="taskUserId">
+            <option value="">Unassigned</option>
+          </select>
+
+          <button type="submit">Create Task</button>
+        </form>
+      </section>
+    </section>
+
+    <section class="card glass">
+      <div class="task-header">
+        <h2 id="taskBoardTitle">Kanban Board</h2>
+        <p id="taskBoardNote" class="section-note"></p>
+        <div class="view-switcher">
+          <button id="viewKanbanBtn" type="button" class="is-active">Kanban</button>
+          <button id="viewCalendarBtn" type="button">Weekly Planner</button>
+          <button id="viewTimelineBtn" type="button">Timeline</button>
+        </div>
+        <div class="filter-row">
+          <select id="filterProjectIds" multiple size="4" aria-label="Filter projects"></select>
+          <select id="filterUserIds" multiple size="4" aria-label="Filter assignees"></select>
+          <select id="filterStatuses" multiple size="3" aria-label="Filter statuses">
+            <option value="TODO">TODO</option>
+            <option value="IN_PROGRESS">IN_PROGRESS</option>
+            <option value="DONE">DONE</option>
+          </select>
+          <input id="filterQuery" type="text" placeholder="Search description, project, assignee" />
+          <button id="applyFiltersBtn" type="button">Apply Filters</button>
+          <button id="saveFilterBtn" type="button">Save Current Filter</button>
+        </div>
+        <div id="filterBadges" class="filter-badges"></div>
+        <div class="saved-filters-row">
+          <label for="savedFilters">Saved Filters</label>
+          <div id="savedFilters" class="saved-filters"></div>
+        </div>
+      </div>
+      <section id="kanbanBoard" class="kanban-board" aria-label="Kanban board">
+        <div class="kanban-column" data-status="TODO">
+          <h3>TODO <span id="colTodoCount" class="count-chip">0</span></h3>
+          <div class="kanban-dropzone" id="todoLane"></div>
+        </div>
+        <div class="kanban-column" data-status="IN_PROGRESS">
+          <h3>IN PROGRESS <span id="colProgressCount" class="count-chip">0</span></h3>
+          <div class="kanban-dropzone" id="progressLane"></div>
+        </div>
+        <div class="kanban-column" data-status="DONE">
+          <h3>DONE <span id="colDoneCount" class="count-chip">0</span></h3>
+          <div class="kanban-dropzone" id="doneLane"></div>
+        </div>
+      </section>
+
+      <section id="calendarView" class="alt-view hidden" aria-label="Weekly planner"></section>
+      <section id="timelineView" class="alt-view hidden" aria-label="Milestone timeline"></section>
+
+      <section id="taskOnboarding" class="onboarding-box hidden" aria-label="Task onboarding"></section>
+    </section>
+
+    <aside id="taskDrawer" class="task-drawer" aria-label="Task details" aria-hidden="true">
+      <div class="drawer-head">
+        <h3 id="drawerTitle">Task Details</h3>
+        <button id="closeDrawerBtn" type="button" class="danger-btn">Close</button>
+      </div>
+      <form id="drawerTaskForm" class="drawer-form">
+        <input id="drawerTaskId" type="hidden" />
+        <label for="drawerDescription">Description</label>
+        <textarea id="drawerDescription" rows="3"></textarea>
+        <label for="drawerAssignee">Assignee</label>
+        <select id="drawerAssignee"></select>
+        <label for="drawerStatus">Status</label>
+        <select id="drawerStatus">
+          <option value="TODO">TODO</option>
+          <option value="IN_PROGRESS">IN_PROGRESS</option>
+          <option value="DONE">DONE</option>
+        </select>
+        <label for="drawerDueDate">Due Date</label>
+        <input id="drawerDueDate" type="date" />
+        <button id="saveDrawerTaskBtn" type="submit">Save Task</button>
+      </form>
+
+      <section class="drawer-section">
+        <h4>Comments</h4>
+        <form id="drawerCommentForm" class="drawer-comment-form">
+          <input id="drawerCommentInput" type="text" placeholder="Add a comment" required />
+          <button type="submit">Post</button>
+        </form>
+        <div id="drawerComments" class="drawer-list"></div>
+      </section>
+
+      <section class="drawer-section">
+        <h4>Activity</h4>
+        <div id="drawerActivity" class="drawer-list"></div>
+      </section>
+    </aside>
+  </main>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
