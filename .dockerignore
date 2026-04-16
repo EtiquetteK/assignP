@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+.github
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Documentation
+README.md
+HELP.md
+
+# Test files
+src/test/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Heroku
+Procfile
+heroku.yml
+system.properties
