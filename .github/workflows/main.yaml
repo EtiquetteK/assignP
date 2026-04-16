@@ -52,18 +52,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/assignp:latest,${{ secrets.DOCKER_USERNAME }}/assignp:${{ github.sha }}
+          tags: ghcr.io/${{ github.repository }}/assignp:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -76,14 +77,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          usedocker: true
-          docker_heroku_process_type: web
+      - name: Setup Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+
+      - name: Deploy to Heroku Container Registry
+        run: |
+          # Login to Heroku
+          echo ${{ secrets.HEROKU_API_KEY }} | docker login --username=_ --password-stdin registry.heroku.com
+          
+          # Pull from GitHub Container Registry
+          docker pull ghcr.io/${{ github.repository }}/assignp:latest
+          
+          # Tag for Heroku
+          docker tag ghcr.io/${{ github.repository }}/assignp:latest registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+          
+          # Push to Heroku
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+          
+          # Release
+          heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
       # Alternative: Manual Heroku CLI deployment
       # - name: Setup Heroku CLI
