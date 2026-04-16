@@ -10,16 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: assignp_db
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,17 +30,9 @@ jobs:
 
       - name: Run tests
         run: mvn clean test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/assignp_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: rootpassword
 
       - name: Build application
         run: mvn clean package -DskipTests
-        env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/assignp_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: rootpassword
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
