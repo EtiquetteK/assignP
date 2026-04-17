@@ -64,7 +64,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: "ghcr.io/${{ github.repository_owner | lowercase }}/assignp:latest"
+          tags: "ghcr.io/${{ toLowerCase(github.repository_owner) }}/assignp:latest"
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -87,10 +87,10 @@ jobs:
           echo ${{ secrets.HEROKU_API_KEY }} | docker login --username=_ --password-stdin registry.heroku.com
           
           # Pull from GitHub Container Registry
-          docker pull "ghcr.io/${{ github.repository_owner | lowercase }}/assignp:latest"
+          docker pull "ghcr.io/${{ toLowerCase(github.repository_owner) }}/assignp:latest"
           
           # Tag for Heroku
-          docker tag "ghcr.io/${{ github.repository_owner | lowercase }}/assignp:latest" registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+          docker tag "ghcr.io/${{ toLowerCase(github.repository_owner) }}/assignp:latest" registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
           
           # Push to Heroku
           docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
