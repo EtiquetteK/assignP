@@ -3,10 +3,7 @@
 .gitignore
 .github
 
-# Maven
-.mvn/
-mvnw
-mvnw.cmd
+# Maven (keep mvnw for Docker build)
 target/
 
 # IDE
