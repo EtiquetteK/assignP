@@ -79,12 +79,12 @@ jobs:
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
 
-      - name: Set up Heroku API key for authentication
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          # Heroku CLI automatically uses HEROKU_API_KEY env variable for login
-          heroku container:login
+      - name: Login to GHCR for deployment
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Pull image from GHCR
         run: |
@@ -94,12 +94,12 @@ jobs:
         run: |
           docker tag ghcr.io/etiquettek/assignp:latest registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
 
-      - name: Push image to Heroku
+      - name: Push to Heroku
         run: |
           docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
 
       - name: Release on Heroku
-        run: |
-          heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
