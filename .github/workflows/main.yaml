@@ -98,12 +98,12 @@ jobs:
 
       - name: Tag image for Heroku
         run: |
-          docker tag ghcr.io/etiquettek/assignp:latest registry.heroku.com/${{ env.HEROKU_APP_NAME }}/web
+          docker tag ghcr.io/etiquettek/assignp:latest registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
 
       - name: Push to Heroku
         run: |
-          docker push registry.heroku.com/${{ env.HEROKU_APP_NAME }}/web
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
 
       - name: Release on Heroku
         run: |
-          heroku container:release web --app ${{ env.HEROKU_APP_NAME }}
+          heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
