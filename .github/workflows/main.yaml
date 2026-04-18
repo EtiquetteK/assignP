@@ -35,10 +35,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Heroku CLI
-        uses: heroku/setup-heroku@v2
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
 
       - name: Pull image from GHCR
         run: |
