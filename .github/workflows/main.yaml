@@ -55,11 +55,9 @@ jobs:
           docker tag ghcr.io/etiquettek/assignp:latest registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
 
       - name: Log in to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
-
-      - name: Push to Heroku
-        run: |
-          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
 
       - name: Release on Heroku
         env:
