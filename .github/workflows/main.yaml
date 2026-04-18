@@ -56,7 +56,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}  # <-- Your PAT secret
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -83,21 +83,27 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          # Login to Heroku CLI
           heroku container:login
 
-      - name: Deploy to Heroku Container Registry
+      - name: Login to GHCR for deployment
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Pull image from GHCR
         run: |
-          # Pull image from GHCR
           docker pull ghcr.io/etiquettek/assignp:latest
-          
-          # Tag image for Heroku
+
+      - name: Tag image for Heroku
+        run: |
           docker tag ghcr.io/etiquettek/assignp:latest registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
-          
-          # Push to Heroku
+
+      - name: Push to Heroku
+        run: |
           docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
-          
-          # Release on Heroku
+
+      - name: Release on Heroku
+        run: |
           heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
