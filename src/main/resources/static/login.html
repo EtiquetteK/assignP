@@ -7,15 +7,21 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="container">
+  <a class="skip-link" href="#mainContent">Skip to content</a>
+  <main class="container auth-shell" id="mainContent">
     <nav class="top-nav">
       <a class="button-link" href="index.html">Home</a>
       <a class="button-link" href="register.html">Register</a>
       <a class="button-link" href="dashboard.html">Dashboard</a>
     </nav>
 
+    <section class="auth-brand">
+      <h1>Welcome Back</h1>
+      <p>Sign in to continue tracking work across Kanban, planner, and timeline views.</p>
+    </section>
+
     <section class="card">
-      <h1>Login</h1>
+      <h2>Login</h2>
       <form id="loginForm">
         <label for="username">Username</label>
         <input id="username" type="text" required />

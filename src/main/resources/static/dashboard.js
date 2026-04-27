@@ -9,6 +9,8 @@ let notifications = [];
 let refreshTimer = null;
 let searchDebounceTimer = null;
 let activeView = "kanban";
+let lastFocusedElement = null;
+const STATUS_FLOW = ["TODO", "IN_PROGRESS", "DONE"];
 
 function parseJwt(tokenValue) {
   if (!tokenValue) return null;
@@ -369,8 +371,9 @@ function renderMetrics() {
 
 function taskCard(task) {
   const due = task.dueDate ? `Due ${task.dueDate}` : "No due date";
+  const status = task.status || "TODO";
   return `
-    <article class="kanban-card" draggable="true" data-task-id="${task.id}">
+    <article class="kanban-card" draggable="true" tabindex="0" data-task-id="${task.id}" data-status="${escapeHtml(status)}" aria-label="Task ${task.id}. ${escapeHtml(task.description || "Untitled")}. Status ${escapeHtml(status)}. Use left and right arrow keys to move status, or Enter to open details.">
       <h4>#${task.id} ${escapeHtml(task.description || "Untitled")}</h4>
       <p>${escapeHtml(task.projectName || "Unknown project")}</p>
       <div class="task-meta">${escapeHtml(task.assigneeUsername || "Unassigned")} | ${escapeHtml(due)}</div>
@@ -525,15 +528,31 @@ async function markAllNotificationsRead() {
 }
 
 function openDrawer() {
+  lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const drawer = document.getElementById("taskDrawer");
   drawer.classList.add("open");
   drawer.setAttribute("aria-hidden", "false");
+  const closeBtn = document.getElementById("closeDrawerBtn");
+  closeBtn.focus();
 }
 
 function closeDrawer() {
   const drawer = document.getElementById("taskDrawer");
   drawer.classList.remove("open");
   drawer.setAttribute("aria-hidden", "true");
+  if (lastFocusedElement) {
+    lastFocusedElement.focus();
+  }
+}
+
+function shiftStatus(currentStatus, direction) {
+  const index = STATUS_FLOW.indexOf(currentStatus);
+  if (index < 0) return currentStatus;
+  const nextIndex = index + direction;
+  if (nextIndex < 0 || nextIndex >= STATUS_FLOW.length) {
+    return currentStatus;
+  }
+  return STATUS_FLOW[nextIndex];
 }
 
 async function openTaskDetails(taskId) {
@@ -980,6 +999,34 @@ document.getElementById("kanbanBoard").addEventListener("click", (event) => {
   }
 });
 
+document.getElementById("kanbanBoard").addEventListener("keydown", async (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  const card = target.closest(".kanban-card");
+  if (!(card instanceof HTMLElement)) return;
+  if (target.tagName === "BUTTON") return;
+
+  const taskId = Number(card.dataset.taskId);
+  if (!taskId) return;
+
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    await openTaskDetails(taskId);
+    return;
+  }
+
+  if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+    event.preventDefault();
+    const direction = event.key === "ArrowRight" ? 1 : -1;
+    const currentStatus = card.dataset.status || "TODO";
+    const nextStatus = shiftStatus(currentStatus, direction);
+    if (nextStatus !== currentStatus) {
+      await updateTask(taskId, { status: nextStatus }, `Task #${taskId} moved to ${nextStatus}.`);
+    }
+  }
+});
+
 document.getElementById("calendarView").addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
@@ -1003,6 +1050,14 @@ document.getElementById("timelineView").addEventListener("click", (event) => {
 });
 
 document.getElementById("closeDrawerBtn").addEventListener("click", closeDrawer);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  const drawer = document.getElementById("taskDrawer");
+  if (!drawer.classList.contains("open")) return;
+  event.preventDefault();
+  closeDrawer();
+});
 
 document.getElementById("drawerTaskForm").addEventListener("submit", async (event) => {
   event.preventDefault();
