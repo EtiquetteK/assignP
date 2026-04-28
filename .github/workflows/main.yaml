@@ -6,67 +6,34 @@ on:
       - main
 
 jobs:
-  build-docker:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.build-image.outputs.tag }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
-
-      - name: Build Docker image
-        id: build-image
+      # Log in directly to Heroku Container Registry
+      - name: Log in to Heroku Container Registry
         run: |
-          docker build -t ghcr.io/etiquettek/assignp:latest .
-          echo "::set-output name=tag::ghcr.io/etiquettek/assignp:latest"
+          echo ${{ secrets.HEROKU_API_KEY }} | docker login --username=_ --password-stdin registry.heroku.com
 
-  deploy:
-    needs: build-docker
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # Build Docker image for Heroku
+      - name: Build Docker image
+        run: |
+          docker build -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web .
 
+      # Push image to Heroku
+      - name: Push Docker image
+        run: |
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+
+      # Install Heroku CLI
       - name: Install Heroku CLI
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
-
-      - name: Pull image from GHCR
-        run: |
-          docker pull ghcr.io/etiquettek/assignp:latest
-
-      - name: Tag image for Heroku
-        run: |
-          docker tag ghcr.io/etiquettek/assignp:latest registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
-
-      - name: Log in to Heroku Container Registry
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login
-
-      - name: Set Heroku stack to container
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          heroku stack:set container --app ${{ secrets.HEROKU_APP_NAME }}
-        #just a comment to trigger a new commit
+      # Release the image on Heroku
       - name: Release on Heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
