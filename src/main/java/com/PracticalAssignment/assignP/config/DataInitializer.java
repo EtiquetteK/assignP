@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Profile("!test")
 public class DataInitializer {
 
-    @Value("${app.init.data.enabled:false}")
+    @Value("${app.init.data.enabled:true}")
     private boolean dataInitEnabled;
 
     @Bean
