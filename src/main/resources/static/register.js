@@ -1,4 +1,4 @@
-const API_BASE = window.location.port === "8080" ? "/api" : "http://localhost:8080/api";
+const API_BASE = window.location.port === "8080" ? "/api" : "https://assignp-task-management-app-9bf075cabf2c.herokuapp.com/api";
 
 function setStatus(message, isError = false) {
   const el = document.getElementById("statusMessage");
