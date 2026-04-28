@@ -35,7 +35,9 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/").permitAll()
                 .requestMatchers("/index.html").permitAll()
-                .requestMatchers("/static/**").permitAll()
+                .requestMatchers("/login.html", "/register.html", "/dashboard.html").permitAll()
+                .requestMatchers("/style.css", "/app.js", "/login.js", "/register.js", "/dashboard.js").permitAll()
+                .requestMatchers("/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )
             .cors(cors -> {})
@@ -51,7 +53,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500", "http://localhost:3000","https://assignp-task-management-app-9bf075cabf2c.herokuapp.com/"));
+        configuration.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500", "http://localhost:3000", "https://assignp-task-management-app-9bf075cabf2c.herokuapp.com"));
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization","Content-Type"));
         configuration.setAllowCredentials(true);
