@@ -23,7 +23,7 @@ jobs:
         run: |
           docker build -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web .
 
-      # Push image to Heroku
+      # Pushing
       - name: Push Docker image
         run: |
           docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
