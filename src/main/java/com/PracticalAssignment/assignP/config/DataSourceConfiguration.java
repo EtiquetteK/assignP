@@ -18,16 +18,27 @@ import java.net.URI;
 @Profile("postgres")
 public class DataSourceConfiguration {
 
+    public DataSourceConfiguration() {
+        System.out.println("\n╔════════════════════════════════════════════╗");
+        System.out.println("║ DataSourceConfiguration INITIALIZED        ║");
+        System.out.println("║ Profile: postgres                          ║");
+        System.out.println("╚════════════════════════════════════════════╝\n");
+    }
+
     @Bean
     public DataSource dataSource() {
         String databaseUrl = System.getenv("DATABASE_URL");
         
         if (databaseUrl == null || databaseUrl.isEmpty()) {
-            System.err.println("ERROR: DATABASE_URL environment variable is not set!");
-            System.err.println("Make sure the Heroku PostgreSQL add-on is installed.");
+            System.err.println("\n╔════════════════════════════════════════════╗");
+            System.err.println("║ FATAL ERROR                             ║");
+            System.err.println("║ DATABASE_URL environment variable is NOT   ║");
+            System.err.println("║ set. Heroku PostgreSQL add-on must be     ║");
+            System.err.println("║ installed.                                 ║");
+            System.err.println("╚════════════════════════════════════════════╝\n");
             throw new IllegalStateException(
                 "DATABASE_URL environment variable is not set. " +
-                "Heroku PostgreSQL add-on must be installed and DATABASE_URL must be configured."
+                "Heroku PostgreSQL add-on must be installed."
             );
         }
 
@@ -65,10 +76,12 @@ public class DataSourceConfiguration {
             // Build JDBC URL for PostgreSQL
             String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s?sslmode=require", host, port, database);
             
-            System.out.println("✓ Connecting to PostgreSQL Database");
-            System.out.println("  Host: " + host);
-            System.out.println("  Port: " + port);
-            System.out.println("  Database: " + database);
+            System.out.println("\n✓ Successfully parsed DATABASE_URL:");
+            System.out.println("  └─ Host: " + host);
+            System.out.println("  └─ Port: " + port);
+            System.out.println("  └─ Database: " + database);
+            System.out.println("  └─ User: " + username);
+            System.out.println("  └─ SSL Mode: require\n");
             
             return DataSourceBuilder.create()
                     .driverClassName("org.postgresql.Driver")
@@ -78,8 +91,12 @@ public class DataSourceConfiguration {
                     .build();
                     
         } catch (Exception e) {
-            System.err.println("ERROR parsing DATABASE_URL: " + e.getMessage());
+            System.err.println("\n╔════════════════════════════════════════════╗");
+            System.err.println("║  ERROR parsing DATABASE_URL              ║");
+            System.err.println("╚════════════════════════════════════════════╝");
+            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
+            System.err.println();
             throw new IllegalStateException("Failed to parse DATABASE_URL: " + e.getMessage(), e);
         }
     }
