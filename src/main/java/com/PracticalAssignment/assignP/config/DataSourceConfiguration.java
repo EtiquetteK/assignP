@@ -2,48 +2,53 @@ package com.PracticalAssignment.assignP.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Primary;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import javax.sql.DataSource;
 import java.net.URI;
 
 /**
- * Configuration to properly parse Heroku's DATABASE_URL environment variable for PostgreSQL.
- * Heroku provides DATABASE_URL in format: postgres://user:password@host:port/dbname
- * This needs to be converted to JDBC format: jdbc:postgresql://host:port/dbname
+ * Configuration to intelligently detect and configure the datasource.
  * 
- * This bean is only created when the 'postgres' profile is active (via Procfile in Heroku).
+ * - If DATABASE_URL is set (Heroku): Parse and use PostgreSQL
+ * - Otherwise: Use default MySQL configuration from application-local.properties
+ * 
+ * This works without relying on Spring profiles, which can be unreliable during startup.
  */
 @Configuration
-@Profile("postgres")
 public class DataSourceConfiguration {
 
     public DataSourceConfiguration() {
-        System.out.println("\n╔════════════════════════════════════════════╗");
-        System.out.println("║ DataSourceConfiguration INITIALIZED        ║");
-        System.out.println("║ Profile: postgres                          ║");
-        System.out.println("╚════════════════════════════════════════════╝\n");
+        String databaseUrl = System.getenv("DATABASE_URL");
+        if (databaseUrl != null && !databaseUrl.isEmpty()) {
+            System.out.println("\n╔════════════════════════════════════════════╗");
+            System.out.println("║ 🔍 Heroku PostgreSQL Database Detected     ║");
+            System.out.println("╚════════════════════════════════════════════╝\n");
+        } else {
+            System.out.println("\n╔════════════════════════════════════════════╗");
+            System.out.println("║ 📦 Using default database configuration   ║");
+            System.out.println("╚════════════════════════════════════════════╝\n");
+        }
     }
 
     @Bean
+    @Primary
     public DataSource dataSource() {
         String databaseUrl = System.getenv("DATABASE_URL");
         
-        if (databaseUrl == null || databaseUrl.isEmpty()) {
-            System.err.println("\n╔════════════════════════════════════════════╗");
-            System.err.println("║ FATAL ERROR                             ║");
-            System.err.println("║ DATABASE_URL environment variable is NOT   ║");
-            System.err.println("║ set. Heroku PostgreSQL add-on must be     ║");
-            System.err.println("║ installed.                                 ║");
-            System.err.println("╚════════════════════════════════════════════╝\n");
-            throw new IllegalStateException(
-                "DATABASE_URL environment variable is not set. " +
-                "Heroku PostgreSQL add-on must be installed."
-            );
+        // If DATABASE_URL is set, we're on Heroku - configure PostgreSQL
+        if (databaseUrl != null && !databaseUrl.isEmpty()) {
+            return configureHerokuPostgres(databaseUrl);
         }
+        
+        // Otherwise use default configuration (will be loaded from properties)
+        System.out.println("✓ Using application properties for datasource configuration");
+        return DataSourceBuilder.create().build();
+    }
 
+    private DataSource configureHerokuPostgres(String databaseUrl) {
         try {
-            System.out.println("Parsing Heroku DATABASE_URL...");
+            System.out.println("✓ Parsing Heroku DATABASE_URL for PostgreSQL...");
             
             // Parse DATABASE_URL (format: postgres://user:password@host:port/dbname or postgresql://...)
             String normalizedUrl = databaseUrl.replaceFirst("^postgres://", "postgresql://");
@@ -73,15 +78,14 @@ public class DataSourceConfiguration {
                 throw new IllegalArgumentException("DATABASE_URL missing database name");
             }
             
-            // Build JDBC URL for PostgreSQL
+            // Build JDBC URL for PostgreSQL with SSL
             String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s?sslmode=require", host, port, database);
             
-            System.out.println("\n✓ Successfully parsed DATABASE_URL:");
-            System.out.println("  └─ Host: " + host);
-            System.out.println("  └─ Port: " + port);
-            System.out.println("  └─ Database: " + database);
-            System.out.println("  └─ User: " + username);
-            System.out.println("  └─ SSL Mode: require\n");
+            System.out.println("  ✓ Host: " + host);
+            System.out.println("  ✓ Port: " + port);
+            System.out.println("  ✓ Database: " + database);
+            System.out.println("  ✓ User: " + username);
+            System.out.println("  ✓ SSL Mode: require\n");
             
             return DataSourceBuilder.create()
                     .driverClassName("org.postgresql.Driver")
@@ -91,6 +95,16 @@ public class DataSourceConfiguration {
                     .build();
                     
         } catch (Exception e) {
+            System.err.println("\n╔════════════════════════════════════════════╗");
+            System.err.println("║ ❌ ERROR parsing DATABASE_URL              ║");
+            System.err.println("╚════════════════════════════════════════════╝");
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println();
+            throw new IllegalStateException("Failed to parse DATABASE_URL: " + e.getMessage(), e);
+        }
+    }
+}
             System.err.println("\n╔════════════════════════════════════════════╗");
             System.err.println("║  ERROR parsing DATABASE_URL              ║");
             System.err.println("╚════════════════════════════════════════════╝");
