@@ -22,11 +22,11 @@ public class DataSourceConfiguration {
         String databaseUrl = System.getenv("DATABASE_URL");
         if (databaseUrl != null && !databaseUrl.isEmpty()) {
             System.out.println("\n╔════════════════════════════════════════════╗");
-            System.out.println("║ 🔍 Heroku PostgreSQL Database Detected     ║");
+            System.out.println("║  Heroku PostgreSQL Database Detected     ║");
             System.out.println("╚════════════════════════════════════════════╝\n");
         } else {
             System.out.println("\n╔════════════════════════════════════════════╗");
-            System.out.println("║ 📦 Using default database configuration   ║");
+            System.out.println("║  Using default database configuration   ║");
             System.out.println("╚════════════════════════════════════════════╝\n");
         }
     }
@@ -94,22 +94,11 @@ public class DataSourceConfiguration {
                     .password(password)
                     .build();
                     
-        } catch (Exception e) {
-            System.err.println("\n╔════════════════════════════════════════════╗");
-            System.err.println("║ ❌ ERROR parsing DATABASE_URL              ║");
-            System.err.println("╚════════════════════════════════════════════╝");
-            System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
-            System.err.println();
-            throw new IllegalStateException("Failed to parse DATABASE_URL: " + e.getMessage(), e);
-        }
-    }
-}
+        } catch (java.net.URISyntaxException | IllegalArgumentException e) {
             System.err.println("\n╔════════════════════════════════════════════╗");
             System.err.println("║  ERROR parsing DATABASE_URL              ║");
             System.err.println("╚════════════════════════════════════════════╝");
             System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
             System.err.println();
             throw new IllegalStateException("Failed to parse DATABASE_URL: " + e.getMessage(), e);
         }
