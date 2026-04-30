@@ -4,8 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import javax.sql.DataSource;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,38 +19,42 @@ import java.net.URISyntaxException;
 public class DataSourceConfiguration {
 
     @Bean
-    public DataSource dataSource() throws URISyntaxException {
+    public DataSource dataSource() {
         String databaseUrl = System.getenv("DATABASE_URL");
         
         if (databaseUrl == null || databaseUrl.isEmpty()) {
+            System.err.println("ERROR: DATABASE_URL environment variable is not set!");
             throw new IllegalStateException("DATABASE_URL environment variable is not set. " +
                     "Heroku PostgreSQL add-on must be installed and DATABASE_URL must be configured.");
         }
 
-        // Parse DATABASE_URL (format: postgres://user:password@host:port/dbname)
-        URI dbUri = new URI(databaseUrl);
-        
-        String username = dbUri.getUserInfo().split(":")[0];
-        String password = dbUri.getUserInfo().split(":")[1];
-        String host = dbUri.getHost();
-        int port = dbUri.getPort();
-        String database = dbUri.getPath().substring(1); // Remove leading slash
-        
-        // Build JDBC URL for PostgreSQL
-        String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", host, port, database);
-        
-        System.out.println("✓ Connecting to PostgreSQL: " + host + ":" + port + "/" + database);
-        
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(jdbcUrl);
-        config.setUsername(username);
-        config.setPassword(password);
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(2);
-        config.setConnectionTimeout(30000); // 30 seconds
-        config.setIdleTimeout(600000); // 10 minutes
-        config.setMaxLifetime(1800000); // 30 minutes
-        
-        return new HikariDataSource(config);
+        try {
+            // Parse DATABASE_URL (format: postgres://user:password@host:port/dbname or postgresql://...)
+            String normalizedUrl = databaseUrl.replaceFirst("postgres://", "postgresql://");
+            URI dbUri = new URI(normalizedUrl);
+            
+            String username = dbUri.getUserInfo().split(":")[0];
+            String password = dbUri.getUserInfo().split(":")[1];
+            String host = dbUri.getHost();
+            int port = dbUri.getPort() != -1 ? dbUri.getPort() : 5432;
+            String database = dbUri.getPath().substring(1); // Remove leading slash
+            
+            // Build JDBC URL for PostgreSQL
+            String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", host, port, database);
+            
+            System.out.println("✓ Connecting to PostgreSQL at: " + host + ":" + port + "/" + database);
+            
+            return DataSourceBuilder.create()
+                    .driverClassName("org.postgresql.Driver")
+                    .url(jdbcUrl)
+                    .username(username)
+                    .password(password)
+                    .build();
+                    
+        } catch (Exception e) {
+            System.err.println("ERROR parsing DATABASE_URL: " + e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException("Failed to parse DATABASE_URL: " + e.getMessage(), e);
+        }
     }
 }
