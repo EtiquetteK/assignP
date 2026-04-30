@@ -1,1 +1,1 @@
-web: java -jar target/assignP-0.0.1-SNAPSHOT.jar
+web: java -Dspring.profiles.active=postgres -jar target/assignP-0.0.1-SNAPSHOT.jar
