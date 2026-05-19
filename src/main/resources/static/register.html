@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | Task Management SaaS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
+  <main class="container auth-shell" id="mainContent">
+    <nav class="top-nav">
+      <a class="button-link" href="index.html">Home</a>
+      <a class="button-link" href="login.html">Login</a>
+      <a class="button-link" href="dashboard.html">Dashboard</a>
+    </nav>
+
+    <section class="auth-brand">
+      <h1>Create Your Workspace</h1>
+      <p>Register and start organizing projects with collaborative team execution in minutes.</p>
+    </section>
+
+    <section class="card">
+      <h2>Register</h2>
+      <form id="registerForm">
+        <label for="username">Username</label>
+        <input id="username" type="text" required />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" required />
+
+        <button type="submit">Create Account</button>
+      </form>
+      <p id="statusMessage" class="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="app-config.js"></script>
+  <script src="register.js"></script>
+</body>
+</html>
